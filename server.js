@@ -1,45 +1,29 @@
-// server.js
 const express = require('express');
 const app = express();
 
-// Use express.json() middleware to parse JSON bodies.
+app.use(express.static('public'));
 app.use(express.json());
 
-// Serve static files (HTML, CSS, client-side JavaScript) from the "public" directory.
-app.use(express.static('public'));
+// temp faster record
+let bestTime = Infinity;
 
-// In-memory storage for messages
-let messages = [];
-
-/**
- * GET /messages
- * Returns a JSON object containing all messages.
- */
-app.get('/messages', (req, res) => {
-  res.json({ messages });
-});
-
-/**
- * POST /messages
- * Expects a JSON payload with "username" and "message".
- * Adds the new message to the messages array.
- */
-app.post('/messages', (req, res) => {
-  const { username, message } = req.body;
-  if (!username || !message) {
-    return res.status(400).json({ error: 'Both username and message are required.' });
+// Save the fatesr record
+app.post('/record', (req, res) => {
+  const reactionTime = req.body.time;
+  if (reactionTime < bestTime) {
+    bestTime = reactionTime;
+    console.log('New best time:', bestTime);
+    res.json({ success: true, message: 'New best time recorded!' });
+  } else {
+    res.json({ success: false, message: 'Not a best time.' });
   }
-  // Optionally, include a timestamp for each message.
-  const newMessage = {
-    username,
-    message,
-    timestamp: Date.now()
-  };
-  messages.push(newMessage);
-  res.status(201).json({ success: true });
 });
 
-// Define the port (default to 3000 if not specified).
+// Obatin faster record
+app.get('/record', (req, res) => {
+  res.json({ bestTime });
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
